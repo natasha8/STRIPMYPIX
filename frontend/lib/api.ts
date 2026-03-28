@@ -2,22 +2,22 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface GpsCoord {
-  lat: number;
-  lng: number;
+  readonly lat: number;
+  readonly lng: number;
 }
 
 export interface Finding {
-  category: string;
-  value: string;
-  risk: "critical" | "high" | "medium" | "low";
+  readonly category: string;
+  readonly value: string;
+  readonly risk: "critical" | "high" | "medium" | "low";
 }
 
 export interface AnalysisResult {
-  risk_score: number;
-  findings: Finding[];
-  gps: GpsCoord | null;
-  filename: string;
-  downscaled: boolean;
+  readonly risk_score: number;
+  readonly findings: Finding[];
+  readonly gps: GpsCoord | null;
+  readonly filename: string;
+  readonly downscaled: boolean;
 }
 
 async function parseErrorMessage(res: Response): Promise<string> {
@@ -35,10 +35,17 @@ export async function analyzeImage(file: File): Promise<AnalysisResult> {
   const form = new FormData();
   form.append("file", file);
 
-  const res = await fetch(`${API_BASE}/analyze`, {
-    method: "POST",
-    body: form,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/analyze`, {
+      method: "POST",
+      body: form,
+    });
+  } catch {
+    throw new Error(
+      "Unable to reach the analysis server. Please check that the backend is running."
+    );
+  }
 
   if (!res.ok) {
     const message = await parseErrorMessage(res);
@@ -52,10 +59,17 @@ export async function stripImage(file: File): Promise<Blob> {
   const form = new FormData();
   form.append("file", file);
 
-  const res = await fetch(`${API_BASE}/strip`, {
-    method: "POST",
-    body: form,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/strip`, {
+      method: "POST",
+      body: form,
+    });
+  } catch {
+    throw new Error(
+      "Unable to reach the server. Please check that the backend is running."
+    );
+  }
 
   if (!res.ok) {
     const message = await parseErrorMessage(res);
