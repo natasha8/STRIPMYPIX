@@ -35,6 +35,10 @@ def create_app() -> FastAPI:
     application.include_router(analyze.router)
     application.include_router(strip.router)
 
+    @application.get("/health")
+    async def health() -> dict[str, str]:
+        return {"status": "ok"}
+
     return application
 
 
