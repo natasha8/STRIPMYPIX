@@ -51,13 +51,13 @@ async def analyze_image(
     image_bytes = await file.read()
     validate_upload(file, image_bytes, settings)
 
-    image_format = _detect_format(image_bytes)  # safe: validation passed
-    image_bytes, downscaled = maybe_downscale(
-        image_bytes, settings.max_pixels, image_format
-    )
-
     result = extract_metadata(image_bytes)
     risk_score = calculate_risk_score(result.findings)
+
+    image_format = _detect_format(image_bytes)
+    _image_bytes, downscaled = maybe_downscale(
+        image_bytes, settings.max_pixels, image_format
+    )
 
     logger.info(
         "Analyzed %s: score=%d findings=%d",

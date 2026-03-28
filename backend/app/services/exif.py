@@ -84,23 +84,13 @@ def _safe_decode(value: bytes | str | int | tuple) -> str:
     return str(value)
 
 
-def extract_metadata(image_bytes: bytes) -> ExtractionResult:
-    """Extract EXIF metadata findings from raw image bytes.
-
-    Scans for GPS, camera model, software, timestamps, serial numbers,
-    and lens information.
-
-    Args:
-        image_bytes: Raw bytes of a JPEG/TIFF/WebP image.
-
-    Returns:
-        ExtractionResult with all findings and parsed GPS if available.
-    """
+def _extract_via_piexif(image_bytes: bytes) -> ExtractionResult | None:
+    """Try piexif (JPEG/TIFF only). Returns None on failure."""
     try:
         exif_dict = piexif.load(image_bytes)
     except Exception:
-        logger.debug("No EXIF data found or failed to parse")
-        return ExtractionResult()
+        logger.debug("piexif.load failed, will try PIL fallback")
+        return None
 
     findings: list[Finding] = []
     gps: GpsCoord | None = None
@@ -187,6 +177,107 @@ def extract_metadata(image_bytes: bytes) -> ExtractionResult:
         )
 
     return ExtractionResult(findings=findings, gps=gps)
+
+
+_PIL_TAG_MAP: dict[int, tuple[str, str]] = {
+    0x0110: (CATEGORY_CAMERA, "medium"),     # Model
+    0x0131: (CATEGORY_SOFTWARE, "low"),      # Software
+    0x0132: (CATEGORY_TIMESTAMP, "medium"),  # DateTime
+    0x9003: (CATEGORY_TIMESTAMP, "medium"),  # DateTimeOriginal
+    0xA434: (CATEGORY_LENS, "low"),          # LensModel
+    0xA431: (CATEGORY_SERIAL, "high"),       # BodySerialNumber
+}
+
+
+def _extract_via_pil(image_bytes: bytes) -> ExtractionResult:
+    """Fallback using PIL's getexif(). Works for JPEG, PNG, WebP, TIFF."""
+    try:
+        img = Image.open(io.BytesIO(image_bytes))
+        exif = img.getexif()
+    except Exception:
+        logger.debug("PIL getexif failed")
+        return ExtractionResult()
+
+    if not exif:
+        return ExtractionResult()
+
+    findings: list[Finding] = []
+    gps: GpsCoord | None = None
+    seen_categories: set[str] = set()
+
+    for tag_id, (category, risk) in _PIL_TAG_MAP.items():
+        val = exif.get(tag_id)
+        if val and category not in seen_categories:
+            seen_categories.add(category)
+            findings.append(
+                Finding(category=category, value=_safe_decode(val), risk=risk)
+            )
+
+    gps_ifd = exif.get_ifd(0x8825)
+    if gps_ifd:
+        try:
+            lat_dms = gps_ifd.get(2)
+            lng_dms = gps_ifd.get(4)
+            lat_ref = gps_ifd.get(1, "N")
+            lng_ref = gps_ifd.get(3, "E")
+
+            if lat_dms and lng_dms:
+                lat = _dms_to_decimal_ifd(lat_dms, lat_ref)
+                lng = _dms_to_decimal_ifd(lng_dms, lng_ref)
+                gps = GpsCoord(lat=lat, lng=lng)
+                findings.append(
+                    Finding(
+                        category=CATEGORY_GPS,
+                        value=f"{lat}, {lng}",
+                        risk="critical",
+                    )
+                )
+        except Exception:
+            logger.debug("PIL GPS parse failed", exc_info=True)
+
+    return ExtractionResult(findings=findings, gps=gps)
+
+
+def _dms_to_decimal_ifd(dms: tuple, ref: str) -> float:
+    """Convert PIL IFD GPS tuples to decimal degrees.
+
+    PIL returns GPS as (degrees, minutes, seconds) where each may be a
+    float or IFDRational.
+    """
+    degrees = float(dms[0])
+    minutes = float(dms[1])
+    seconds = float(dms[2])
+    decimal = degrees + minutes / 60 + seconds / 3600
+    if ref in ("S", "W"):
+        decimal = -decimal
+    return round(decimal, 6)
+
+
+def extract_metadata(image_bytes: bytes) -> ExtractionResult:
+    """Extract EXIF metadata findings from raw image bytes.
+
+    Tries piexif first (best for JPEG/TIFF), then falls back to PIL's
+    getexif() which supports JPEG, PNG, WebP, and TIFF.
+
+    Args:
+        image_bytes: Raw bytes of a JPEG/TIFF/WebP/PNG image.
+
+    Returns:
+        ExtractionResult with all findings and parsed GPS if available.
+    """
+    result = _extract_via_piexif(image_bytes)
+    if result is not None and result.findings:
+        return result
+
+    pil_result = _extract_via_pil(image_bytes)
+    if pil_result.findings:
+        logger.debug("Used PIL fallback, found %d findings", len(pil_result.findings))
+        return pil_result
+
+    if result is not None:
+        return result
+
+    return ExtractionResult()
 
 
 def calculate_risk_score(findings: list[Finding]) -> int:
