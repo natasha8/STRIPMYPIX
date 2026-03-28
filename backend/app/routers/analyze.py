@@ -51,7 +51,7 @@ async def analyze_image(
     image_bytes = await file.read()
     validate_upload(file, image_bytes, settings)
 
-    image_format = _detect_format(image_bytes)
+    image_format = _detect_format(image_bytes)  # safe: validation passed
     image_bytes, downscaled = maybe_downscale(
         image_bytes, settings.max_pixels, image_format
     )
