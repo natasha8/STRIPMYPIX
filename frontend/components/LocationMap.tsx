@@ -44,7 +44,7 @@ export default function LocationMap({ lat, lng }: LocationMapProps) {
   const tile = TILE_STYLES[style];
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-[var(--color-surface)]/50 overflow-hidden">
+    <div className="rounded-xl border border-slate-800 bg-surface/50 overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse-neon" />
@@ -55,7 +55,7 @@ export default function LocationMap({ lat, lng }: LocationMapProps) {
         <select
           value={style}
           onChange={(e) =>
-            setStyle(e.target.value as keyof typeof TILE_STYLES)
+            setStyle(e.target.value)
           }
           className="text-xs font-mono bg-[var(--color-surface-light)] border border-slate-700
                      rounded px-2 py-1 text-slate-300 outline-none"
@@ -69,7 +69,7 @@ export default function LocationMap({ lat, lng }: LocationMapProps) {
         center={[lat, lng]}
         zoom={14}
         scrollWheelZoom={false}
-        className="h-[280px] w-full"
+        className="h-[clamp(320px,48vh,520px)] w-full"
       >
         <TileLayer url={tile.url} attribution={tile.attribution} />
         <Marker position={[lat, lng]} icon={defaultIcon}>

@@ -60,7 +60,7 @@ export default function AnalysisPage() {
     <div className="animate-fade-in-up space-y-8">
       <button
         onClick={() => router.push("/")}
-        className="flex items-center gap-2 text-[var(--color-neon)] font-mono text-sm
+        className="flex items-center gap-2 text-(--color-neon) font-mono text-sm
                    hover:underline cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -69,9 +69,9 @@ export default function AnalysisPage() {
 
       <div className="flex items-center gap-3">
         {hasCritical ? (
-          <ShieldAlert className="w-7 h-7 text-[var(--color-danger)]" />
+          <ShieldAlert className="w-7 h-7 text-(--color-danger)" />
         ) : (
-          <ShieldCheck className="w-7 h-7 text-[var(--color-safe)]" />
+          <ShieldCheck className="w-7 h-7 text-(--color-safe)" />
         )}
         <div>
           <h2 className="text-2xl font-bold">Analysis Report</h2>
@@ -81,7 +81,7 @@ export default function AnalysisPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="space-y-6">
-          <div className="rounded-xl border border-[var(--color-neon)]/30 bg-[var(--color-surface)]/50 p-6">
+          <div className="rounded-xl border border-(--color-neon)/30 bg-(--color-surface)/50 p-6">
             <PrivacyGauge score={result.risk_score} />
           </div>
 

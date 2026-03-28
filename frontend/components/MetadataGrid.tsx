@@ -57,7 +57,7 @@ const RISK_STYLES: Record<
 export default function MetadataGrid({ findings }: MetadataGridProps) {
   if (findings.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-[var(--color-surface)]/50 p-8 flex flex-col items-center gap-3">
+      <div className="rounded-xl border border-slate-800 bg-surface/50 p-8 flex flex-col items-center gap-3">
         <AlertTriangle className="w-10 h-10 text-[var(--color-safe)]" />
         <p className="text-sm font-mono text-slate-400">
           No metadata leaks found
@@ -71,7 +71,7 @@ export default function MetadataGrid({ findings }: MetadataGridProps) {
       <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">
         Detected Leaks
       </h3>
-      <div className="space-y-2">
+      <div className="space-y-0.5">
         {findings.map((finding, index) => {
           const Icon = ICON_MAP[finding.category] || Code;
           const style = RISK_STYLES[finding.risk] || RISK_STYLES.low;
