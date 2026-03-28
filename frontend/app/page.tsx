@@ -11,19 +11,19 @@ const FEATURES = [
     icon: Eye,
     title: "Detect",
     description:
-      "Scans EXIF data for GPS coordinates, camera model, serial numbers, timestamps, software, and lens info.",
+      "Scans EXIF for GPS, camera model, serials, timestamps, software, and lens data.",
   },
   {
     icon: Shield,
     title: "Score",
     description:
-      "Rates your privacy exposure from 0 (critical) to 100 (safe) based on what metadata is leaking.",
+      "Rates exposure from 0 (critical) to 100 (safe) from what metadata leaks.",
   },
   {
     icon: Trash2,
     title: "Strip",
     description:
-      "Removes all metadata and returns a clean file. No data stored. No accounts. No tracking.",
+      "Removes metadata and returns a clean file. Nothing stored, no accounts.",
   },
 ] as const;
 
@@ -56,43 +56,47 @@ export default function HomePage() {
   };
 
   return (
-    <div className="animate-fade-in-up space-y-16">
-      <section className="text-center space-y-4 pt-8">
-        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+    <div className="animate-fade-in-up flex flex-col gap-5 sm:gap-7 md:gap-9">
+      <section className="text-center max-w-xl sm:max-w-2xl mx-auto space-y-2 sm:space-y-3">
+        <h2 className="text-[1.35rem] leading-tight font-bold tracking-tight sm:text-3xl md:text-4xl">
           Your images are{" "}
-          <span className="text-[var(--color-neon)]">talking</span>.
+          <span className="text-(--color-neon) uppercase">talking</span>.
         </h2>
-        <p className="text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">
-          Every photo you share may contain hidden metadata — GPS coordinates,
-          camera serial numbers, timestamps. StripMyPix reveals what&apos;s
-          leaking and lets you remove it in{" "}
-          <span className="text-[var(--color-neon)] font-bold uppercase">
+        <p className="text-xs sm:text-sm text-slate-400 leading-snug sm:leading-relaxed px-0.5">
+          Photos can hide GPS, serial numbers, and timestamps. StripMyPix shows what
+          leaks and lets you remove it in{" "}
+          <span className="text-(--color-neon) font-bold uppercase whitespace-nowrap">
             one click
-          </span>
-          .
+          </span>.
         </p>
       </section>
 
-      <div className="max-w-2xl mx-auto space-y-4">
+      <div className="w-full max-w-2xl mx-auto space-y-2 sm:space-y-3">
         <DropZone onFile={handleFile} loading={loading} />
         {error && (
-          <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3">
-            <p className="text-sm font-mono text-red-400">{error}</p>
+          <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2.5 sm:px-4 sm:py-3">
+            <p className="text-xs sm:text-sm font-mono text-red-400 break-words">
+              {error}
+            </p>
           </div>
         )}
       </div>
 
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
         {FEATURES.map((feat) => (
           <div
             key={feat.title}
-            className="rounded-xl border border-slate-800 bg-[var(--color-surface)]/50 p-6 space-y-3"
+            className="rounded-lg sm:rounded-xl border border-slate-800 bg-[var(--color-surface)]/50 p-4 sm:p-5 flex gap-3 sm:flex-col sm:gap-3 md:gap-3 items-start sm:items-stretch"
           >
-            <feat.icon className="w-8 h-8 text-[var(--color-neon)]" />
-            <h3 className="font-semibold text-white">{feat.title}</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              {feat.description}
-            </p>
+            <feat.icon className="w-6 h-6 shrink-0 sm:w-7 sm:h-7 md:w-8 md:h-8 text-[var(--color-neon)]" />
+            <div className="min-w-0 text-left sm:text-left flex-1 space-y-1">
+              <h3 className="text-sm sm:text-base font-semibold text-white">
+                {feat.title}
+              </h3>
+              <p className="text-[11px] sm:text-xs md:text-sm text-slate-400 leading-snug">
+                {feat.description}
+              </p>
+            </div>
           </div>
         ))}
       </section>

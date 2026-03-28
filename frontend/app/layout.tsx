@@ -25,7 +25,7 @@ export default function RootLayout({
         className={`min-h-screen antialiased ${notoSansMono.className}`}
       >
         <header className="sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-sm border-b border-slate-800">
-          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="max-w-6xl mx-auto px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-md bg-[var(--color-neon)]/20 border border-[var(--color-neon)] flex items-center justify-center">
                 <span className="text-[var(--color-neon)] font-mono font-bold text-sm">
@@ -43,7 +43,9 @@ export default function RootLayout({
             </span>
           </div>
         </header>
-        <main className="max-w-6xl mx-auto px-6 py-10">{children}</main>
+        <main className="max-w-6xl mx-auto px-4 py-5 sm:px-6 sm:py-8 lg:py-10">
+          {children}
+        </main>
       </body>
     </html>
   );
