@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from pydantic import Field, computed_field
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _DEFAULT_DEV_ORIGIN = "http://localhost:3000"
@@ -35,10 +35,14 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    @computed_field
     @property
     def allowed_origins(self) -> list[str]:
-        """Browser origins allowed by CORS, parsed from ``ALLOWED_ORIGINS``."""
+        """Browser origins allowed by CORS, parsed from ``ALLOWED_ORIGINS``.
+
+        Plain property (not a Pydantic field) so ``ALLOWED_ORIGINS`` is only
+        bound to ``allowed_origins_csv`` and pydantic-settings does not try to
+        JSON-parse this name from the environment.
+        """
         raw = self.allowed_origins_csv.strip()
         if not raw:
             return [_DEFAULT_DEV_ORIGIN]
