@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { ArrowLeft, ShieldAlert, ShieldCheck } from "lucide-react";
@@ -13,13 +13,17 @@ const LocationMap = dynamic(() => import("@/components/LocationMap"), {
   ssr: false,
 });
 
+const DATA_URL_MIME_RE = /:(.*?);/;
+
 function dataURLtoFile(dataUrl: string, name: string, type: string): File {
   const [header, base64] = dataUrl.split(",");
-  const mime = header.match(/:(.*?);/)?.[1] || type;
+  const mimeMatch = DATA_URL_MIME_RE.exec(header);
+  const mime = mimeMatch?.[1] ?? type;
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+    const code = binary.codePointAt(i);
+    bytes[i] = code === undefined ? 0 : code & 0xff;
   }
   return new File([bytes], name, { type: mime });
 }
@@ -41,9 +45,11 @@ export default function AnalysisPage() {
       return;
     }
 
-    setResult(JSON.parse(raw));
-    setPreviewUrl(fileData);
-    setFile(dataURLtoFile(fileData, fileName, fileType));
+    startTransition(() => {
+      setResult(JSON.parse(raw) as AnalysisResult);
+      setPreviewUrl(fileData);
+      setFile(dataURLtoFile(fileData, fileName, fileType));
+    });
   }, [router]);
 
   if (!result || !file) return null;
