@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-neon: #a56ffc;
+  --color-neon-dim: #8b5cf6;
+  --color-neon-glow: rgba(165, 111, 252, 0.35);
+  --color-surface: #0f172a;
+  --color-surface-light: #1e293b;
+  --color-danger: #ef4444;
+  --color-warning: #eab308;
+  --color-safe: #22c55e;
+  --font-mono: var(--font-noto-sans-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+body {
+  background: #0a0a0a;
+  color: #e2e8f0;
+  font-family: var(--font-mono);
+}
+
+@keyframes border-glow {
+  0%, 100% {
+    border-color: rgba(165, 111, 252, 0.3);
+    box-shadow: 0 0 8px rgba(165, 111, 252, 0.3);
+  }
+  50% {
+    border-color: rgba(165, 111, 252, 0.8);
+    box-shadow: 0 0 20px rgba(165, 111, 252, 0.8);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-neon {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-border-glow {
+  animation: border-glow 2s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out;
+}
+
+.animate-pulse-neon {
+  animation: pulse-neon 1.5s ease-in-out infinite;
+}
