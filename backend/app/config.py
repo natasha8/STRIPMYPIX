@@ -3,25 +3,47 @@
 from __future__ import annotations
 
 import logging
-from pydantic_settings import BaseSettings
+
+from pydantic import Field, computed_field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_DEFAULT_DEV_ORIGIN = "http://localhost:3000"
 
 
 class Settings(BaseSettings):
     """Runtime settings loaded from environment variables.
 
     Attributes:
-        allowed_origins: CORS origins allowed to call the API.
+        allowed_origins_csv: Comma-separated CORS origins (env ``ALLOWED_ORIGINS``).
+        allowed_origins: Parsed list of origins for ``CORSMiddleware``.
         max_upload_bytes: Maximum upload size in bytes (default 12 MB).
         max_pixels: Maximum total pixel count before downscaling (default 24 M).
         log_level: Python logging level name.
     """
 
-    allowed_origins: list[str] = ["http://localhost:3000"]
+    allowed_origins_csv: str = Field(
+        default=_DEFAULT_DEV_ORIGIN,
+        validation_alias="ALLOWED_ORIGINS",
+        description=(
+            "Comma-separated browser origins for CORS, e.g. "
+            f"https://myapp.vercel.app,{_DEFAULT_DEV_ORIGIN}"
+        ),
+    )
     max_upload_bytes: int = 12 * 1024 * 1024
     max_pixels: int = 24_000_000
     log_level: str = "INFO"
 
-    model_config = {"env_prefix": "", "env_file": ".env", "extra": "ignore"}
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @computed_field
+    @property
+    def allowed_origins(self) -> list[str]:
+        """Browser origins allowed by CORS, parsed from ``ALLOWED_ORIGINS``."""
+        raw = self.allowed_origins_csv.strip()
+        if not raw:
+            return [_DEFAULT_DEV_ORIGIN]
+        parts = [p.strip() for p in raw.split(",") if p.strip()]
+        return parts if parts else [_DEFAULT_DEV_ORIGIN]
 
 
 def get_settings() -> Settings:
