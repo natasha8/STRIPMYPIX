@@ -58,12 +58,35 @@ All processing is ephemeral. No database, no cloud storage, no accounts.
 
 ### Backend
 
+From the repo root, use a virtual environment so dependencies stay isolated (do not rely on a global `uvicorn` on `PATH`).
+
+**macOS / Linux (bash):**
+
 ```bash
 cd backend
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+**Windows (PowerShell):**
+
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+If script execution is blocked, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, or call the interpreter directly without activating:
+
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
 
 ### Frontend
@@ -80,8 +103,33 @@ Open [http://localhost:3000](http://localhost:3000) and drop an image.
 
 ```bash
 cd backend
+# With venv active, or: .\.venv\Scripts\python.exe -m pytest -v
 python -m pytest -v
 ```
+
+## Troubleshooting
+
+### Windows: `WinError 10013` when starting uvicorn
+
+Usually the chosen port is **already in use** (e.g. a previous `uvicorn` still running) or blocked by policy. Check listeners:
+
+```powershell
+netstat -ano | findstr ":8000"
+```
+
+Note the **PID** in the last column, then stop it (replace `12345`):
+
+```powershell
+taskkill /PID 12345 /F
+```
+
+Or use another port and point the frontend at it (`frontend/.env.local`):
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8080
+```
+
+Set `NEXT_PUBLIC_API_URL=http://localhost:8080` in `frontend/.env.local`.
 
 ## Project Structure
 
